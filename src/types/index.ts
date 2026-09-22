@@ -2,6 +2,8 @@ import { Document, Types } from 'mongoose';
 
 import {
   AiRequestType,
+  ContentProposalSource,
+  ContentProposalStatus,
   FileStatus,
   FileType,
   FileVisibility,
@@ -111,6 +113,41 @@ export interface AiLogDocument extends Document {
   fallbackUsed: boolean;
   errorMessage: string | null;
   tokenEstimate: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ContentProposalAttrs {
+  fileId: Types.ObjectId;
+  userId?: string;
+  angle: string;
+  caption: string;
+  writeUp: string;
+  hashtags: string[];
+  previewText: string;
+  instructions?: string;
+  status?: ContentProposalStatus;
+  feedback?: string;
+  reviewedAt?: Date;
+  modelUsed?: string;
+  generationSource?: ContentProposalSource;
+}
+
+export interface ContentProposalDocument extends Document {
+  _id: Types.ObjectId;
+  fileId: Types.ObjectId;
+  userId: string;
+  angle: string;
+  caption: string;
+  writeUp: string;
+  hashtags: string[];
+  previewText: string;
+  instructions: string | null;
+  status: ContentProposalStatus;
+  feedback: string | null;
+  reviewedAt: Date | null;
+  modelUsed: string;
+  generationSource: ContentProposalSource;
   createdAt: Date;
   updatedAt: Date;
 }
