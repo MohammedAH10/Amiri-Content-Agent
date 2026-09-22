@@ -4,16 +4,33 @@ import * as contentAgentService from '../services/contentAgent.service';
 import { ContentProposalDocument } from '../types';
 
 const serializeProposal = (proposal: ContentProposalDocument) => {
-  const plain = proposal.toObject();
-  const fileId = (plain.fileId as unknown) as { _id: unknown } | null;
-  const hasFile = fileId && typeof fileId === 'object' && '_id' in fileId;
+  const plain = proposal.toObject() as { fileId: unknown } & Record<string, unknown>;
+  const populated = plain.fileId as { _id?: { toString(): string } } & Record<string, unknown> | null;
+
+  let fileId = String(proposal.fileId);
+  let file: Record<string, unknown> | null = null;
+
+  if (populated && typeof populated === 'object' && '_id' in populated) {
+    fileId = populated._id.toString();
+    file = {
+      id: fileId,
+      name: populated.name,
+      type: populated.type,
+      size: populated.size,
+      url: populated.url,
+      description: populated.description,
+      tags: populated.tags,
+      uploadDate: populated.uploadDate,
+      status: populated.status,
+      createdAt: populated.createdAt,
+      updatedAt: populated.updatedAt,
+    };
+  }
 
   return {
     id: proposal._id.toString(),
-    fileId: hasFile
-      ? (fileId as { _id: { toString(): string } })._id.toString()
-      : String(proposal.fileId),
-    file: hasFile ? fileId : null,
+    fileId,
+    file,
     userId: proposal.userId,
     angle: proposal.angle,
     caption: proposal.caption,
