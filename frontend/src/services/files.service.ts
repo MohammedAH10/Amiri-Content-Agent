@@ -41,6 +41,9 @@ export async function createFileFromUpload(
   if (payload.tags && payload.tags.length > 0) {
     formData.append('tags', payload.tags.join(','));
   }
+  if (payload.description) {
+    formData.append('description', payload.description);
+  }
 
   const res = await fetch('/api/files/upload', {
     method: 'POST',

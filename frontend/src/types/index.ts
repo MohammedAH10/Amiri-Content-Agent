@@ -101,6 +101,7 @@ export interface CreateFileUploadPayload {
   name: string;
   file: File;
   tags?: string[];
+  description?: string;
 }
 
 export interface UpdateStatusPayload {

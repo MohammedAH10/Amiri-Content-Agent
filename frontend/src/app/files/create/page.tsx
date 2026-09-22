@@ -18,6 +18,7 @@ export default function CreateFilePage() {
     type: FileType;
     size: number;
     tags: string[];
+    description: string;
     file: File;
   }) => {
     setLoading(true);
@@ -29,10 +30,11 @@ export default function CreateFilePage() {
         name: data.name,
         file: data.file,
         tags: data.tags,
+        description: data.description,
       });
       clearTimeout(timeoutId);
       if (res.success && res.data) {
-        router.push(`/recommend-media?q=${encodeURIComponent(data.name)}`);
+        router.push(`/agent?fileId=${res.data.id}`);
       } else {
         setError(res.error?.message || 'Failed to create file');
       }

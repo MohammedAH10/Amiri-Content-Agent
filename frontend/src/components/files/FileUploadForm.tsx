@@ -43,13 +43,14 @@ export default function FileUploadForm({
   onSubmit,
   loading,
 }: {
-  onSubmit: (data: { name: string; type: FileType; size: number; tags: string[]; file: File }) => void;
+  onSubmit: (data: { name: string; type: FileType; size: number; tags: string[]; description: string; file: File }) => void;
   loading: boolean;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newName, setNewName] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [tags, setTags] = useState('');
+  const [description, setDescription] = useState('');
   const [fileError, setFileError] = useState('');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,6 +84,7 @@ export default function FileUploadForm({
       size: selectedFile.size,
       tags: tagList,
       file: selectedFile,
+      description: description.trim(),
     });
   };
 
@@ -127,6 +129,18 @@ export default function FileUploadForm({
         value={tags}
         onChange={(e) => setTags(e.target.value)}
       />
+
+      <div>
+        <label className="block text-label-sm text-neon-violet uppercase tracking-widest mb-1 ml-1">
+          Description (optional)
+        </label>
+        <textarea
+          className="w-full bg-black/40 border border-glass-border rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-text-muted/50 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/30 min-h-[64px] resize-y"
+          placeholder="What is this about? The content agent uses this to draft your post."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
 
       {storedName && selectedFile && (
         <div className="glass-card rounded-xl p-3 text-xs text-text-muted space-y-1">

@@ -84,7 +84,8 @@ export const useAgentStudioStore = create<AgentStudioState>((set, get) => ({
   loadProposals: async () => {
     set({ loadingProposals: true, error: null });
     try {
-      const params = get().statusFilter ? { status: get().statusFilter } : undefined;
+      const statusFilter = get().statusFilter;
+      const params = statusFilter ? { status: statusFilter } : undefined;
       const res = await apiListProposals(params);
       if (res.success && res.data) {
         set({ proposals: res.data });
