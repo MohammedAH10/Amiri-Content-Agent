@@ -23,6 +23,7 @@ export interface FileRecord {
   type: FileType;
   size: number;
   url: string;
+  description?: string;
   tags: string[];
   uploadDate: string;
   status: FileStatus;
@@ -105,4 +106,44 @@ export interface CreateFileUploadPayload {
 export interface UpdateStatusPayload {
   status: 'approved' | 'rejected';
   moderationReason?: string;
+}
+
+export type ProposalStatus = 'pending' | 'approved' | 'rejected';
+
+export interface FileRef {
+  id: string;
+  name: string;
+  type: FileType;
+  size: number;
+  url: string;
+  description?: string;
+  tags: string[];
+  uploadDate: string;
+  status: FileStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContentProposalRecord {
+  id: string;
+  fileId: string;
+  file?: FileRef | null;
+  userId: string;
+  angle: string;
+  caption: string;
+  writeUp: string;
+  hashtags: string[];
+  previewText: string;
+  instructions: string | null;
+  status: ProposalStatus;
+  feedback: string | null;
+  reviewedAt: string | null;
+  modelUsed: string;
+  generationSource: 'ai' | 'fallback';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProposalListResponse extends ApiResponse<ContentProposalRecord[]> {
+  count: number;
 }
