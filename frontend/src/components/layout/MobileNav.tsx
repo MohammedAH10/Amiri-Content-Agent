@@ -7,6 +7,7 @@ import { cn } from '@/utils/formatters';
 
 const navItems = [
   { href: '/', label: 'Dashboard' },
+  { href: '/agent', label: 'Agent' },
   { href: '/generate-post', label: 'Create' },
   { href: '/suggest-hashtags', label: 'Hashtags' },
   { href: '/recommend-media', label: 'Media' },

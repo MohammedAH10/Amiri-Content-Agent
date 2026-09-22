@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Card from '@/components/ui/Card';
 
 const features: { href: string; title: string; desc: string; icon: string; color: string; bg: string; border: string }[] = [
+  { href: '/agent', title: 'Agent Studio', desc: 'Drop media and let the agent draft the post write-up, caption and hashtags — then approve or reject', icon: 'auto_awesome', color: '#34D399', bg: 'rgba(52,211,153,0.2)', border: 'rgba(52,211,153,0.3)' },
   { href: '/generate-post', title: 'Create Content', desc: 'Generate post copy, hashtags, media recommendations, and preview', icon: 'add_circle', color: '#8B5CF6', bg: 'rgba(139,92,246,0.2)', border: 'rgba(139,92,246,0.3)' },
   { href: '/suggest-hashtags', title: 'Suggest Hashtags', desc: 'Get hashtag suggestions from your post content', icon: 'tag', color: '#22D3EE', bg: 'rgba(34,211,238,0.2)', border: 'rgba(34,211,238,0.3)' },
   { href: '/recommend-media', title: 'Recommend Media', desc: 'Find approved media files matching your post', icon: 'image', color: '#F472B6', bg: 'rgba(244,114,182,0.2)', border: 'rgba(244,114,182,0.3)' },
