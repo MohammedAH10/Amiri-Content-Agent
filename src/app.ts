@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 
 import { errorHandler } from './middleware/errorHandler';
 import adminRoutes from './routes/admin.routes';
+import agentRoutes from './routes/agent.routes';
 import aiRoutes from './routes/ai.routes';
 import draftsRoutes from './routes/drafts.routes';
 import filesRoutes from './routes/files.routes';
@@ -31,6 +32,7 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/files', filesRoutes);
 app.use('/ai', aiRoutes);
 app.use('/posts', draftsRoutes);
+app.use('/agent', agentRoutes);
 app.use('/admin', adminRoutes);
 app.use('/', workflowRoutes);
 

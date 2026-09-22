@@ -1,4 +1,4 @@
-import { GeneratePostResult, PostFormat, SuggestHashtagsResult, Tone } from './ai.service';
+import { ContentPackage, GeneratePostResult, PostFormat, SuggestHashtagsResult, Tone } from './ai.service';
 
 const FALLBACK_HASHTAGS = ['#ContentDraft', '#AIUnavailable', '#DraftMode'];
 
@@ -52,4 +52,34 @@ export const fallbackSuggestHashtags = (postContent: string): SuggestHashtagsRes
     : FALLBACK_HASHTAGS;
 
   return { hashtags };
+};
+
+export const fallbackContentPackage = (
+  mediaName: string,
+  description = '',
+  tags: string[] = [],
+): ContentPackage => {
+  const topic = description || mediaName;
+  const tagText = tags.length > 0 ? tags.join(', ') : 'content';
+
+  const hashtags = tags.length > 0
+    ? tags.slice(0, 6).map((t) => `#${t.replace(/\s+/g, '')}`)
+    : ['#ContentDrop', '#MediaSeries', '#AgentDraft'];
+
+  return {
+    angle: `${topic} — spotlight angle (agent draft)`,
+    caption: `[Agent draft — AI offline] ${topic}`,
+    writeUp: [
+      `[Draft — AI generation unavailable]`,
+      ``,
+      topic,
+      ``,
+      `Tags: ${tagText}`,
+      `---`,
+      `This package was produced by the deterministic fallback template.`,
+      `The autonomous agent will draft a richer write-up once the AI provider is reachable.`,
+    ].join('\n'),
+    hashtags,
+    previewText: `AI draft preview for "${mediaName}"`,
+  };
 };

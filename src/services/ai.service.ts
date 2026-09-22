@@ -29,6 +29,14 @@ export type RelatedIdeasResult = {
   relatedIdeas: string[];
 };
 
+export type ContentPackage = {
+  angle: string;
+  caption: string;
+  writeUp: string;
+  hashtags: string[];
+  previewText: string;
+};
+
 // ── Prompt Builders ──────────────────────────────────────────
 
 const FORMAT_INSTRUCTIONS: Record<PostFormat, string> = {

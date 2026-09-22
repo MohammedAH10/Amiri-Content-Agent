@@ -14,6 +14,7 @@ const seed = async (): Promise<void> => {
   const filesCollection = mongoose.connection.db!.collection('files');
   const postDraftsCollection = mongoose.connection.db!.collection('postdrafts');
   const aiLogsCollection = mongoose.connection.db!.collection('ailogs');
+  const contentProposalsCollection = mongoose.connection.db!.collection('contentproposals');
   const now = new Date();
 
   const seedFiles = [
@@ -413,6 +414,90 @@ const seed = async (): Promise<void> => {
   console.log(`  Success: ${seedLogs.filter((l) => l.success).length}`);
   console.log(`  Failure: ${seedLogs.filter((l) => !l.success).length}`);
   console.log(`  Fallback used: ${seedLogs.filter((l) => l.fallbackUsed).length}`);
+
+  // Seed Content Proposals (autonomous agent output)
+  console.log('');
+  console.log('Inserting seed content proposals...');
+
+  const insertedFileIds = Object.values(fileResult.insertedIds);
+  const seedProposals = [
+    {
+      fileId: insertedFileIds[0],
+      userId: 'demo-user',
+      angle: 'Product launch hype — countdown energy',
+      caption: 'Something big is landing. Meet the Q3 product launch campaign.',
+      writeUp: [
+        'Every launch starts with a promise, and ours is simple: make every creator\'s workflow effortless.',
+        '',
+        'This season we\'re shipping a refreshed campaign built around speed, clarity and impact — designed for creators who want results without the noise.',
+        '',
+        'Swipe through the full campaign, then tell us what you want to see next.',
+      ].join('\n'),
+      hashtags: ['#ProductLaunch', '#NewCampaign', '#CreatorTools', '#Marketing', '#Q3'],
+      previewText: 'A hype-driven launch post introducing the Q3 campaign banner.',
+      instructions: null,
+      status: 'pending',
+      feedback: null,
+      reviewedAt: null,
+      modelUsed: 'openai/gpt-oss-120b:free',
+      generationSource: 'ai',
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      fileId: insertedFileIds[1],
+      userId: 'demo-user',
+      angle: 'Behind-the-scenes culture story',
+      caption: 'The people behind the product, in 30 seconds.',
+      writeUp: [
+        'We talk a lot about product. Today we\'re talking about the team.',
+        '',
+        'This behind-the-scenes clip shows how our culture shows up in the work — collaboration over ego, curiosity over assumptions.',
+        '',
+        'Peek inside, and tell us what your team\'s week looks like.',
+      ].join('\n'),
+      hashtags: ['#BehindTheScenes', '#Culture', '#TeamLife', '#Workplace', '#BTS'],
+      previewText: 'A culture-focused video post showing the team behind the product.',
+      instructions: null,
+      status: 'approved',
+      feedback: null,
+      reviewedAt: now,
+      modelUsed: 'openai/gpt-oss-120b:free',
+      generationSource: 'ai',
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      fileId: insertedFileIds[5],
+      userId: 'demo-user',
+      angle: 'Feature deep-dive with product education',
+      caption: 'One screenshot. One workflow. Zero friction.',
+      writeUp: [
+        'New here? This is the feature people keep asking about.',
+        '',
+        'The demo screenshot below shows exactly how the workflow fits together — from upload to publish in minutes.',
+        '',
+        'Save this post for your next build, and follow for the full walkthrough.',
+      ].join('\n'),
+      hashtags: ['#FeatureDemo', '#Productivity', '#Workflow', '#SaaS', '#HowTo'],
+      previewText: 'An educational post breaking down the featured demo screenshot.',
+      instructions: null,
+      status: 'rejected',
+      feedback: 'Angle is too generic — make it about the specific feature, not the workflow.',
+      reviewedAt: now,
+      modelUsed: 'openai/gpt-oss-120b:free',
+      generationSource: 'ai',
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+
+  const proposalResult = await contentProposalsCollection.insertMany(seedProposals);
+
+  console.log(`Successfully seeded ${Object.keys(proposalResult.insertedIds).length} content proposals:`);
+  console.log(`  Pending:  ${seedProposals.filter((p) => p.status === 'pending').length}`);
+  console.log(`  Approved: ${seedProposals.filter((p) => p.status === 'approved').length}`);
+  console.log(`  Rejected: ${seedProposals.filter((p) => p.status === 'rejected').length}`);
   console.log('');
   console.log('Seed complete.');
 

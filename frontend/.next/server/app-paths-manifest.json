@@ -1,0 +1,12 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/agent/page": "app/agent/page.js",
+  "/blob-upload/route": "app/blob-upload/route.js",
+  "/files/[id]/page": "app/files/[id]/page.js",
+  "/files/create/page": "app/files/create/page.js",
+  "/files/page": "app/files/page.js",
+  "/generate-post/page": "app/generate-post/page.js",
+  "/page": "app/page.js",
+  "/recommend-media/page": "app/recommend-media/page.js",
+  "/suggest-hashtags/page": "app/suggest-hashtags/page.js"
+}

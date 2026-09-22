@@ -464,3 +464,90 @@ upload_initiated → scan_in_progress → approved
 | `POST` | `/ai/generate-post` | Generate AI post content |
 | `POST` | `/ai/suggest-hashtags` | Suggest hashtags from content |
 | `POST` | `/ai/recommend-media` | Recommend media for post |
+| `POST` | `/agent/generate/:fileId` | Ask the content agent to draft a package for a file |
+| `GET` | `/agent/proposals` | List content proposals (filter by `status`, `userId`) |
+| `GET` | `/agent/proposals/:id` | Fetch a single content proposal |
+| `POST` | `/agent/proposals/:id/approve` | Approve a pending proposal |
+| `POST` | `/agent/proposals/:id/reject` | Reject a proposal (optional `feedback`) |
+| `POST` | `/agent/proposals/:id/regenerate` | Ask the agent to redraft with optional `instructions` |
+
+---
+
+## Autonomous Content Agent Module
+
+When media is uploaded, the only things a creator provides are the asset, a description and tags.
+Once the file passes moderation (status `approved`), the content agent **initiates on its own** and
+drafts a complete content package: a narrative **angle**, a short **caption**, the full **write-up**,
+**hashtags**, and a one-line **preview** for a human reviewer. The creator previews the package and
+**approves or rejects** it — no manual prompt engineering needed.
+
+### POST /agent/generate/:fileId
+
+Ask the agent to draft (or redraft) a content package for a specific media file.
+
+```bash
+curl -X POST http://localhost:3000/agent/generate/<fileId> \
+  -H "Content-Type: application/json" \
+  -d '{ "userId": "web-user", "instructions": "Keep it playful" }'
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "proposal-id",
+    "fileId": "file-id",
+    "angle": "Behind-the-scenes culture story",
+    "caption": "The people behind the product, in 30 seconds.",
+    "writeUp": "We talk a lot about product. Today we are talking about the team...",
+    "hashtags": ["#BehindTheScenes", "#Culture", "#TeamLife"],
+    "previewText": "A culture-focused video post showing the team behind the product.",
+    "status": "pending",
+    "modelUsed": "openai/gpt-oss-120b:free",
+    "generationSource": "ai"
+  }
+}
+```
+
+### GET /agent/proposals
+
+```bash
+curl "http://localhost:3000/agent/proposals?status=pending"
+```
+
+### POST /agent/proposals/:id/approve
+
+Marks the proposal `approved` and stamps `reviewedAt`.
+
+### POST /agent/proposals/:id/reject
+
+```bash
+curl -X POST http://localhost:3000/agent/proposals/<id>/reject \
+  -H "Content-Type: application/json" \
+  -d '{ "feedback": "Too formal for our audience" }'
+```
+
+### POST /agent/proposals/:id/regenerate
+
+```bash
+curl -X POST http://localhost:3000/agent/proposals/<id>/regenerate \
+  -H "Content-Type: application/json" \
+  -d '{ "instructions": "Focus on the launch date" }'
+```
+
+### Auto‑kickoff
+
+Approved media automatically triggers an agent run when `AUTO_AGENT_ENABLED=true` (skipped in
+`NODE_ENV=test`). The event is scheduled asynchronously so the upload/moderation response is never blocked.
+The agent uses the model router with the same 3‑stage fallback (primary → fallback model → deterministic
+template) and every call is written to the `AiLog` collection (`requestType: "agent"`).
+
+### Lifecycle
+
+```
+upload → moderation (approved) → agent drafts package → pending
+  → approve → ready to publish
+  → reject  → (optional feedback) → regenerate → pending
+```
