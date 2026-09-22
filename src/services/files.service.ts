@@ -4,6 +4,7 @@ import { FileStatus, FileType } from '../utils/constants';
 import { AppError } from '../utils/AppError';
 import logger from '../utils/logger';
 import { moderateFile } from './moderation.service';
+import { scheduleAutoAgentRun } from './contentAgent.service';
 import { REJECT_THRESHOLD, FLAG_THRESHOLD } from './safety/moderationPolicy';
 
 type CreateFileInput = Omit<FileAttrs, 'status' | 'uploadDate' | 'moderationReason'>;
@@ -119,6 +120,10 @@ export const createFileFromUploadWithModeration = async (
     action: result.action,
     score: result.score,
   });
+
+  if (file.status === 'approved') {
+    scheduleAutoAgentRun(file._id.toString());
+  }
 
   return file;
 };
@@ -360,6 +365,10 @@ export const processModerationResult = async (
       newStatus,
       score,
     });
+
+    if (newStatus === 'approved') {
+      scheduleAutoAgentRun(fileId);
+    }
 
     return updatedFile;
   } catch (error: unknown) {
