@@ -52,6 +52,7 @@ npx vitest run --reporter=verbose   # Verbose output
 |--------|-----------|-------------|
 | Files | `GET/POST /files`, `GET/PATCH /files/:id`, `POST /files/upload`, `GET /files/:id/data` | File CRUD, status transitions, upload with multer |
 | AI | `POST /ai/generate-post`, `/regenerate-post`, `/suggest-hashtags`, `/suggest-improvements`, `/related-post-ideas`, `/recommend-media` | LLM-powered content generation with structured output |
+| Agent | `POST /agent/generate/:fileId`, `GET /agent/proposals`, `GET/POST /agent/proposals/:id`, `/approve`, `/reject`, `/regenerate` | Autonomous content agent: auto-drafts post write-ups, captions and hashtags from uploaded media, then previews them for approval/rejection |
 | Drafts | `POST/GET /posts/drafts`, `GET/PATCH /posts/drafts/:id`, `POST /posts/drafts/:id/accept` | Draft lifecycle: create, edit, accept |
 | Admin | `GET /admin/logs/ai` | Paginated/filterable AI audit log |
 | Health | `GET /health` | API health check |
@@ -71,6 +72,7 @@ npx vitest run --reporter=verbose   # Verbose output
 | Route | Feature |
 |-------|---------|
 | `/` | Dashboard with API status, feature cards |
+| `/agent` | **Agent Studio**: drop media + description/tags, agent auto-drafts post write-up, caption and hashtags, preview and approve/reject |
 | `/generate-post` | Post Composer: topic/tone/format input, AI generation, variations, improvements, related ideas, regenerate/edit/accept, media asset picker |
 | `/suggest-hashtags` | Post content → AI hashtag suggestions displayed as tag cloud |
 | `/recommend-media` | Content → approved media file recommendations with score/reason |
@@ -101,6 +103,32 @@ npx vitest run --reporter=verbose   # Verbose output
 | Production readiness assessment | ✅ `docs/production-readiness.md` (honest, not exaggerated) |
 | Model cost reflection | ✅ `docs/model-cost-reflection.md` with free-tier rationale and pricing estimates |
 
+## Autonomous Content Agent
+
+The platform is now a **true agent**, not a manual utility. A creator only drops the media and gives
+it a description and tags. From there the agent takes over:
+
+1. **Upload** — the media goes through the existing moderation pipeline (`upload_initiated → scan_in_progress → approved/rejected`).
+2. **Auto-kickoff** — once approved, the content agent is scheduled automatically and drafts a full
+   content package on its own: a narrative **angle**, a punchy **caption**, the **post write-up**,
+   **hashtags**, and a **previewText** describing what was drafted.
+3. **Preview** — the package appears in the Agent Studio as a card showing the caption, write-up,
+   hashtags and the media asset.
+4. **Approve or reject** — one click approves and marks it ready to publish; one click rejects it
+   (optionally with feedback), and `regenerate` redrafts with optional additional instructions.
+
+Implementation notes:
+
+- Agent logic lives in `src/services/agent.service.ts` (prompt + generation) and
+  `src/services/contentAgent.service.ts` (orchestration: proposals, schedule, review).
+- Each media file maps to **one** `ContentProposal` (a draft that can be regenerated in place) with
+  statuses `pending → approved` or `rejected`.
+- Every agent call flows through the model router's 3-stage fallback and is written to the AI audit
+  log with `requestType: "agent"`.
+- The auto-kickoff is opt-in via `AUTO_AGENT_ENABLED=true` and is skipped in test environments so the
+  suite stays fast and deterministic. Generation is scheduled asynchronously (`setImmediate`) so upload
+  responses are never blocked.
+
 ## Real AI, Not Simulated
 
 The AI calls are **real** — every `POST /ai/*` endpoint makes a genuine HTTPS request to OpenRouter API using a free-tier model (`openai/gpt-oss-120b:free` with fallback to `gpt-oss-20b:free`). The environment `.env` contains a live OpenRouter API key and a live MongoDB Atlas connection string.
@@ -111,22 +139,22 @@ This is not "mock AI" or canned responses. The system is designed so that even i
 
 ```
 lyra-content-agent/
-├── src/                  # Backend source (37 files)
+├── src/                  # Backend source (40 files)
 │   ├── app.ts            # Express app setup
 │   ├── server.ts         # Server bootstrap
 │   ├── config/db.ts      # MongoDB connection
 │   ├── controllers/      # Request handlers
 │   ├── middleware/       # Validation, error handling
-│   ├── models/          # Mongoose schemas
+│   ├── models/          # Mongoose schemas (incl. ContentProposal)
 │   ├── routes/          # Route definitions + Zod schemas
-│   ├── services/        # Business logic
+│   ├── services/        # Business logic (incl. agent.service, contentAgent.service)
 │   ├── types/           # TypeScript interfaces
 │   └── utils/           # Client, logger, constants, errors
-├── frontend/src/         # Frontend source (48 files)
-│   ├── app/             # Pages (App Router)
-│   ├── components/      # React components
-│   ├── services/        # API client (Axios)
-│   ├── store/           # Zustand stores
+├── frontend/src/         # Frontend source (51 files)
+│   ├── app/             # Pages (App Router, incl. /agent)
+│   ├── components/      # React components (incl. agent/ProposalCard, agent/AgentMediaCard)
+│   ├── services/        # API client (Axios, incl. agent.service)
+│   ├── store/           # Zustand stores (incl. agentStudio.store)
 │   └── types/           # TypeScript types
 ├── tests/                # 20 test files (108 passing)
 ├── docs/                 # Sprint 15 documentation
@@ -144,6 +172,7 @@ AI_MODEL=openai/gpt-oss-120b:free       # Primary model
 FALLBACK_AI_MODEL=gpt-oss-20b:free       # Fallback model
 AI_TIMEOUT_MS=30000                      # 30s timeout
 MAX_RECOMMENDATIONS=5
+AUTO_AGENT_ENABLED=true                  # Auto-draft content when media is approved
 NODE_ENV=development
 ```
 
